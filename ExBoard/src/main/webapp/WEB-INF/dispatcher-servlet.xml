@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd">
+
+<bean class="org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor"/>
+	
+	<!-- Mybatis 설정 --> <!-- 17.03.09 -->
+		<!-- 1.datasource -->
+		<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource">
+			<property name="driverClassName" value="oracle.jdbc.driver.OracleDriver"/>
+			<property name="url" value="jdbc:oracle:thin:@localhost:1521:orcl"/>
+			<property name="username" value="sh"/>
+			<property name="password" value="1234"/>			
+		</bean>
+		<!-- 2.트랜잭션관리자 등록 -->
+		<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+			<property name="dataSource" ref="dataSource"/>
+		</bean>
+		<!-- 3.Mybatis 설정 -->
+		<bean id="sqlSessionFactoryBean" class="org.mybatis.spring.SqlSessionFactoryBean">
+			<property name="dataSource" ref="dataSource"/>
+			<property name="configLocation" value="classpath:/mybatis-config.xml"/><!-- 설정파일 위치 classpath=src부터 -->
+		</bean>
+		<bean id="sqlSessionTemplate" class="org.mybatis.spring.SqlSessionTemplate">
+			<constructor-arg name="sqlSessionFactory" ref="sqlSessionFactoryBean"></constructor-arg>
+		</bean>
+	
+	<context:component-scan base-package="com" use-default-filters="false"> <!-- 17.03.13 Controller 자동 등록 -->
+		<context:include-filter type="annotation" expression="org.springframework.stereotype.Controller"/> 
+	</context:component-scan>
+	
+	<!-- DAO -->
+	<bean id="boardDAO" class="com.board.model.BoardDAOImple">
+		<constructor-arg>
+			<ref bean="sqlSessionTemplate"/>
+		</constructor-arg>
+	</bean>
+	
+	<!-- view -->
+	<bean id="viewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver"> <!-- 17.02.28 -->
+	<!-- 클래스는 기본적으로 제공이되고 이를 객체를 생성하고 사용하려면 등록을 해주어야함 -->
+		<property name="prefix" value="/WEB-INF/views/"/> <!-- 접두어로 경로지정 -->
+		<property name="suffix" value=".jsp"/> <!-- 접미어로 .jsp 가 자동으로 등록되도록 설정 -->
+	</bean>
+
+</beans>
